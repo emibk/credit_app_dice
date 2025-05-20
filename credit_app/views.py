@@ -5,7 +5,6 @@ import pickle
 import pandas as pd
 import dice_ml
 from dice_ml.utils import helpers
-import networkx as nx
 import pygraphviz as pgv
 from matplotlib import pyplot as plt
 
@@ -14,10 +13,7 @@ MODEL_PATH1 = os.path.join(os.path.dirname(__file__), "catboost_model_1.pkl")
 with open(MODEL_PATH1, "rb") as f:
     model1 = pickle.load(f)
 
-#Load second model
-MODEL_PATH2 = os.path.join(os.path.dirname(__file__), "catboost_model_2.pkl")
-with open(MODEL_PATH2, "rb") as f:
-    model2 = pickle.load(f)
+
 
 
 domain_knowledge = {
@@ -202,7 +198,7 @@ def identify_changes(counterfactual_instance, input_df):
 
 def create_explanation_graph(counterfactual_instances, prediction, input_df):
     no_cf = len(counterfactual_instances)
-    G = nx.DiGraph()
+    G = pgv.AGraph(directed=True)
     G.add_node("Explanation", label = "Explanation")
     G.add_node(prediction, label = f"Model Output: {prediction}")
     G.add_edge("Explanation", prediction, label = "Model Prediction")
@@ -244,105 +240,24 @@ def create_explanation_graph(counterfactual_instances, prediction, input_df):
             if "values" in domain_knowledge[feature]:
                 original_val_descr = domain_knowledge[feature]["values"][original_value]
                 G.add_node(f"Current {original_val_descr}", label = original_val_descr)
-                G.add_edge(f"Current {original_value}", f"Current {original_val_descr}", label="Describes")
+                G.add_edge(f"Current {original_value}", f"Current {original_val_descr}", label="Description")
 
                 new_val_descr = domain_knowledge[feature]["values"][new_value]
                 G.add_node(f"New cf{i+1} {new_val_descr}", label = new_val_descr)
-                G.add_edge(f"New cf{i+1} {new_value}", f"New cf{i+1} {new_val_descr}", label="Describes")
+                G.add_edge(f"New cf{i+1} {new_value}", f"New cf{i+1} {new_val_descr}", label="Description")
     return G
 
-'''
 
-def create_explanation_graph(counterfactual_instances, prediction, input_df):
-    changes1 = identify_changes(counterfactual_instances.iloc[0], input_df)
-    changes2 = identify_changes(counterfactual_instances.iloc[1], input_df)
-   
-   
-    G = nx.DiGraph()
-
-    G.add_node("Explanation", label = "Explanation")
-    G.add_node(prediction, label = f"Model Output: {prediction}")
-    G.add_edge("Explanation", prediction, label = "Model Prediction")
-
-    pred_meaning = domain_knowledge["prediction"]["values"][str(prediction)]
-    G.add_node(pred_meaning, label = pred_meaning)
-    G.add_edge(prediction, pred_meaning, label = "Prediction Meaning")
-
-    G.add_node("Current Features", label = "Current Features")
-    G.add_edge("Explanation", "Current Features", label = "Current Situation")
-
-    G.add_node("Counterfactual1 Features", label = "Counterfactual1 Features")
-    G.add_edge("Explanation", "Counterfactual1 Features", label = "Alternative Situation")
-
-    G.add_node("Counterfactual2 Features", label = "Counterfactual2 Features")
-    G.add_edge("Explanation", "Counterfactual2 Features", label = "Alternative Situation")
-
-    
-
-    for feature, (original_value, new_value) in changes1.items():
-        G.add_node(f"Current {feature}", label= feature)
-        G.add_edge("Current Features", f"Current {feature}", label="Current Feature")
-
-        feature_descr = domain_knowledge[feature]["description"]
-        G.add_node(f"Current {feature_descr}", label=feature_descr)
-        G.add_edge(f"Current {feature}", f"Current {feature_descr}", label = "Description")
-
-
-        G.add_node(f"New cf1 {feature}", label=feature)
-        G.add_edge("Counterfactual1 Features", f"New cf1 {feature}", label="Changed Feature")
-        G.add_node(f"New cf1 {feature_descr}", label=feature_descr)
-        G.add_edge(f"New cf1 {feature}", f"New cf1 {feature_descr}", label = "Description")
-
-        G.add_node(f"Current {original_value}", label=original_value)
-        G.add_edge(f"Current {feature}", f"Current {original_value}", label="Current Value")
-        G.add_node(f"New cf1 {new_value}", label=new_value)
-        G.add_edge(f"New cf1 {feature}", f"New cf1 {new_value}", label="Changed Value")
-
-       
-        if "values" in domain_knowledge[feature]:
-            original_val_descr = domain_knowledge[feature]["values"][original_value]
-            G.add_node(f"Current {original_val_descr}", label = original_val_descr)
-            G.add_edge(f"Current {original_value}", f"Current {original_val_descr}", label="Describes")
-
-            new_val_descr = domain_knowledge[feature]["values"][new_value]
-            G.add_node(f"New cf1 {new_val_descr}", label = new_val_descr)
-            G.add_edge(f"New cf1 {new_value}", f"New cf1 {new_val_descr}", label="Describes")
-
-    for feature, (original_value, new_value) in changes2.items():
-        G.add_node(f"Current {feature}", label= feature)
-        G.add_edge("Current Features", f"Current {feature}", label="Current Feature")
-        feature_descr = domain_knowledge[feature]["description"]
-        G.add_node(f"Current {feature_descr}", label=feature_descr)
-        G.add_edge(f"Current {feature}", f"Current {feature_descr}", label = "Description")
-
-
-        G.add_node(f"New cf2 {feature}", label=feature)
-        G.add_edge("Counterfactual2 Features", f"New cf2 {feature}", label="Changed Feature")
-        G.add_node(f"New cf2 {feature_descr}", label=feature_descr)
-        G.add_edge(f"New cf2 {feature}", f"New cf2 {feature_descr}", label = "Description")
-
-        G.add_node(f"Current {original_value}", label=original_value)
-        G.add_edge(f"Current {feature}", f"Current {original_value}", label="Current Value")
-        G.add_node(f"New cf2 {new_value}", label=new_value)
-        G.add_edge(f"New cf2 {feature}", f"New cf2 {new_value}", label="New Value")
-
-       
-        if "values" in domain_knowledge[feature]:
-            original_val_descr = domain_knowledge[feature]["values"][original_value]
-            G.add_node(f"Current {original_val_descr}", label = original_val_descr)
-            G.add_edge(f"Current {original_value}", f"Current {original_val_descr}", label="Describes")
-
-            new_val_descr = domain_knowledge[feature]["values"][new_value]
-            G.add_node(f"New cf2 {new_val_descr}", label = new_val_descr)
-            G.add_edge(f"New cf2 {new_value}",  f"New cf2 {new_val_descr}", label="Describes")  
-
-
-    return G
-'''
 def depth_first_search(graph, node, visited, explanation, idx = 0):
     visited.add(node)
+    print(node)
+    print(graph.neighbors(node))
     for neighbor in graph.neighbors(node):
-        relation = graph.get_edge_data(node, neighbor)["label"]
+        if graph.has_edge(node, neighbor):
+            print(f"Edge from {node} to {neighbor}")
+        else: 
+            continue
+        relation = graph.get_edge(node, neighbor).attr['label']
 
         if relation == "Prediction Meaning":
             explanation.insert(0, f"The prediction is '{neighbor}' <br><br>")
@@ -351,9 +266,10 @@ def depth_first_search(graph, node, visited, explanation, idx = 0):
                 explanation.append(f"<br> Current Situation: <br><ul>")
             if relation == "Alternative Situation":
                 explanation.append(f"</ul><br> Alternative Situation: <br><ul>")
-            if graph.out_degree(neighbor) == 0:
+            if len(graph.out_edges(neighbor)) == 0:
                 idx += 1 
-                neighbor_label = graph.nodes[neighbor]["label"]
+                neighbor_label = graph.get_node(neighbor).attr['label']
+               
                 if idx % 2 == 0:
                     explanation.append(f"{neighbor_label} </li>")
                 if idx % 2 != 0:
@@ -416,17 +332,11 @@ def index(request):
                 'Telephone': Telephone,
                 'Foreign_worker': Foreign_worker
             }
-            # print(request.POST) 
-
-            # print(input_data)  # Debugging step
-            # print("Before creating DataFrame")  # Debugging step
+            
             input_df = pd.DataFrame(input_data, index=[0])
 
-            # print(input_df)
             prediction = model1.predict(input_df)
-            # print("Prediction made")  # Debugging step
-            # print(prediction)
-            # prediction = "Creditworthy" if prediction[0] == 1 else "Non-Creditworthy"
+ 
             data = dice_ml.Data(features={'Account_status': ['A11', 'A12', 'A13', 'A14'],
                             'Months': [4, 72],
                             'Credit_history': ['A30', 'A31', 'A32', 'A33', 'A34'],
@@ -456,62 +366,12 @@ def index(request):
 
             m = dice_ml.Model(model=model1, backend="sklearn", model_type='classifier')
             exp = dice_ml.Dice(data, m, method="random")
-            e = exp.generate_counterfactuals(input_df, total_CFs=2, desired_class="opposite", features_to_vary=features_to_vary)
+            e = exp.generate_counterfactuals(input_df, total_CFs=1, desired_class="opposite", features_to_vary=features_to_vary)
             
-            # e.visualize_as_dataframe(show_only_changes=True)
             e_df = e.cf_examples_list[0].final_cfs_df
 
-            # Saving counterfactuals as images
-            '''
             
-            changed_cols= []
-            input_pred = input_df.copy()
-            input_pred['target'] = prediction[0]
-            exp1 = e_df.iloc[[0]]
-
-          
-    
-
-            for idx, row in exp1.iterrows():
-                print(row.index)
-                print(input_pred.iloc[0].index)
-                
-                changes = row != input_pred.iloc[0]
-                
-                changed_cols.append(row[changes])
-            print("DEBUGGING")
-            changes_e = pd.DataFrame(changed_cols)
-            intersection = exp1.columns.intersection(changes_e.columns)
-            changes_e = pd.concat([input_pred[intersection].iloc[[-1]], changes_e], ignore_index=True)
-            changes_e = changes_e.fillna("-")
-            changes_e.index = ["Original", "Counterfactual 1"]
-            changes_e = changes_e.style.apply(lambda x: ["background: red" if x[col] != "-" and 
-                                                           x.name != "Original" else "" for col in x.index], axis = 1)
-            print("DEBUGGING2")
-            import dataframe_image as dfi
-            dfi.export(changes_e, 'counterfactuals_highlighted.png')
-            '''
-
-
-
-
-
-            
-            # G = create_explanation_graph(e_df, prediction[0], input_df)
             G = create_explanation_graph(e_df, prediction[0], input_df)
-            pos = nx.spring_layout(G) 
-            
-            edge_labels = nx.get_edge_attributes(G, 'label')
-            
-            nx.draw(G, pos, with_labels=True, node_size = 900, font_size = 10)
-            nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-            plt.savefig("explanation_graph_nx.png")
-            plt.close()
-
-            A = nx.nx_agraph.to_agraph(G)
-            A.layout(prog='dot')
-            A.draw('explanation_graph.pdf')
-            
             
             nle = generate_nle(G, "Explanation")
             context = {}
@@ -528,8 +388,5 @@ def index(request):
             print(e)
             return HttpResponse("Invalid input")
     
-
-
-
     return render(request, "index.html")
 

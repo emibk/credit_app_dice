@@ -22,7 +22,9 @@
                     <form id = "Loan Prediction Form" method="POST">
                         {% csrf_token %}
 
-                        <label for = "Account_status"> Status of existing checking account: </label>
+                        <label for = "Account_status">
+                             Status of existing checking account: 
+                        </label>
                         <select id = "Account_status" name = "Account_status" required>
                             <option value = "A11"> &lt; 0 DM</option>
                             <option value = "A12">  0 &le; ... &lt; 200 DM</option>
@@ -32,7 +34,8 @@
                         <br><br>
 
                         <label for = "Months"> Duration in months: </label>
-                        <input type = "number" id = "Months" name = "Months" required min = "4" max = "72"> <small> Between 4 and 72.</small>
+                        <input type = "number" id = "Months" 
+                        name = "Months" required min = "4" max = "72"> <small> Between 4 and 72.</small>
                         <br><br>
 
                         <label for = "Credit_history"> Credit history:</label>
@@ -62,7 +65,7 @@
                         <br><br>
 
                         <label for = "Credit_amount"> Credit amount:</label>
-                        <input type = "number" id = "Credit_amount" name = "Credit_amount" required> <small> Between 250 and 18424.</small>
+                        <input type = "number" id = "Credit_amount" name = "Credit_amount" required min="250" max="18424"> <small> Between 250 and 18424.</small>
                         <br><br>
 
                         <label for = "Savings"> Savings account/bonds:</label>
@@ -86,7 +89,7 @@
                         <br><br>
 
                         <label for = "Installment_rate"> Installment rate in percentage of disposable income:</label>
-                        <input type = "number" id = "Installment_rate" name = "Installment_rate" required> <small> Between 1 and 4.</small>
+                        <input type = "number" id = "Installment_rate" name = "Installment_rate" required min="1" max = "4"> <small> Between 1 and 4.</small>
                         <br><br>
 
                         <label for = "Personal_status">Personal status and sex</label>
@@ -108,7 +111,7 @@
                         <br><br>
 
                         <label for = "Residence"> Present residence since:</label>
-                        <input type = "number" id = "Residence" name = "Residence" required> <small> Between 1 and 4.</small>
+                        <input type = "number" id = "Residence" name = "Residence" required min="1" max="4"> <small> Between 1 and 4.</small>
                         <br><br>
 
                         <label for = "Property"> Property:</label>
@@ -121,7 +124,7 @@
                         <br><br>
 
                         <label for = "Age"> Age in years:</label>
-                        <input type = "number" id = "Age" name = "Age" required> <small> Between 19 and 75.</small>
+                        <input type = "number" id = "Age" name = "Age" required min="19" max="75"> <small> Between 19 and 75.</small>
                         <br><br>
 
                         <label for = "Other_installments"> Other installment plans:</label>
@@ -141,7 +144,7 @@
                         <br><br>
 
                         <label for = "Number_credits"> Number of existing credits at this bank:</label>
-                        <input type = "number" id = "Number_credits" name = "Number_credits" required> <small> Between 1 and 4.</small>
+                        <input type = "number" id = "Number_credits" name = "Number_credits" required min="1" max="4"> <small> Between 1 and 4.</small>
                         <br><br>
 
                         <label for = "Job"> Job:</label>
@@ -154,7 +157,7 @@
                         <br><br>
 
                         <label for = "Number_dependents"> Number of people being liable to provide maintenance for:</label>
-                        <input type = "number" id = "Number_dependents" name = "Number_dependents" required> <small> 1 or 2.</small>
+                        <input type = "number" id = "Number_dependents" name = "Number_dependents" required min="1" max="2"> <small> 1 or 2.</small>
                         <br><br>
 
                         <label for = "Telephone"> Telephone:</label>
@@ -171,7 +174,7 @@
                         </select>
                         <br><br>
 
-                        <button type="submit">Submit</button>
+                        <button type="submit" class = "btn btn-primary">Submit</button>
 
                         </form>
                         {% endif %}
